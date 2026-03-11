@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f2027" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="P4P Round" />
+  <title>Ward Round P4P</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(160deg, #0f2027, #203a43, #2c5364);
+      font-family: 'Sarabun', sans-serif;
+      color: #e8f4f8;
+      padding-bottom: 90px;
+    }
+    input, select { -webkit-appearance: none; appearance: none; }
+    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; }
+
+    .header {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 52px 20px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+    .header p { font-size: 13px; color: #94b8c8; margin-top: 2px; }
+
+    .banner {
+      margin: 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(17,153,142,0.35);
+    }
+    .banner-score { font-size: 48px; font-weight: 700; color: #fff; line-height: 1; }
+    .banner-label { font-size: 13px; opacity: 0.85; margin-bottom: 4px; }
+    .banner-unit { font-size: 12px; opacity: 0.75; color: #fff; margin-top: 2px; }
+    .banner-right { text-align: right; }
+    .banner-right .stat { font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 4px; }
+
+    .tabs { display: flex; margin: 0 16px 16px; gap: 8px; }
+    .tab {
+      flex: 1; padding: 11px 0;
+      border-radius: 12px; border: none;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.1);
+      color: #e8f4f8;
+    }
+    .tab.active { background: #38ef7d; color: #0f2027; }
+
+    .content { padding: 0 16px; }
+
+    .card {
+      background: rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .card-label { font-size: 12px; color: #94b8c8; margin-bottom: 8px; }
+
+    .mini-stats { display: flex; gap: 10px; margin-bottom: 14px; }
+    .mini-stat {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      text-align: center;
+    }
+    .mini-stat-num { font-size: 28px; font-weight: 700; color: #38ef7d; }
+    .mini-stat-label { font-size: 11px; color: #94b8c8; margin-top: 2px; }
+
+    .form-input {
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 13px 14px;
+      color: #e8f4f8;
+      font-size: 16px;
+      font-family: 'Sarabun', sans-serif;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    .form-input::placeholder { color: rgba(255,255,255,0.35); }
+    .form-input:focus { border-color: rgba(56,239,125,0.5); background: rgba(255,255,255,0.13); }
+    input[type="date"].form-input { font-size: 15px; }
+    select.form-input { cursor: pointer; }
+    select.form-input option { background: #1a3040; color: #e8f4f8; }
+
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-input { flex: 1; }
+
+    .btn-add {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #11998e, #38ef7d);
+      color: #0f2027;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Sarabun', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-add:active { opacity: 0.8; }
+
+    .patient-item {
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .patient-name { font-weight: 600; font-size: 15px; }
+    .patient-hn { font-size: 12px; color: #94b8c8; margin-top: 2px; }
+    .patient-sub { font-size: 11px; color: #7aa8bc; margin-top: 2px; }
+    .badge {
+      background: rgba(56,239,125,0.15);
+      color: #38ef7d;
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-prep {
+      background: rgba(255,193,7,0.15);
+      color: #ffc107;
+      border-radius: 8px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    .btn-delete {
+      background: rgba(255,80,80,0.15);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: #ff6b6b;
+      font-size: 14px;
+      cursor: pointer;
+      margin-left: 6px;
+      flex-shrink: 0;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 50px 20px;
+      color: #94b8c8;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    /* Summary */
+    .month-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .month-selector select.form-input { margin-bottom: 0; flex: 1; }
+
+    .summary-total {
+      background: linear-gradient(135deg, rgba(17,153,142,0.3), rgba(56,239,125,0.2));
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(56,239,125,0.3);
+    }
+    .summary-total-num { font-size: 42px; font-weight: 700; color: #38ef7d; }
+    .summary-total-label { font-size: 13px; color: #94b8c8; margin-top: 4px; }
+    .summary-breakdown { display: flex; gap: 10px; margin-top: 14px; }
+    .summary-breakdown-item {
+      flex: 1;
+      background: rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .summary-breakdown-num { font-size: 22px; font-weight: 700; color: #38ef7d; }
+    .summary-breakdown-label { font-size: 11px; color: #94b8c8; margin-top: 2px; }
+
+    .day-card {
+      background: rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .day-date { font-weight: 600; font-size: 15px; }
+    .day-count { font-size: 12px; color: #94b8c8; margin-top: 3px; }
+    .day-score {
+      background: rgba(56,239,125,0.15);
+      color: #38ef7d;
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+    .day-patient {
+      font-size: 13px;
+      color: #b0ccd8;
+      padding: 5px 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .day-patient span { color: #6a8fa0; }
+
+    .section-title {
+      font-size: 13px;
+      color: #94b8c8;
+      font-weight: 600;
+      margin: 16px 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-export {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Sarabun', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-bottom: 14px;
+    }
+    .btn-export:active { opacity: 0.8; }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 20px;
+    }
+    .modal {
+      background: #1a3040;
+      border-radius: 18px;
+      padding: 28px 24px;
+      width: 100%; max-width: 320px;
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    .modal-icon { font-size: 40px; margin-bottom: 12px; }
+    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+    .modal-desc { font-size: 13px; color: #94b8c8; margin-bottom: 22px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 10px; }
+    .btn-cancel {
+      flex: 1; padding: 13px;
+      border-radius: 12px; border: none;
+      background: rgba(255,255,255,0.1);
+      color: #e8f4f8;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 14px; cursor: pointer;
+    }
+    .btn-confirm-delete {
+      flex: 1; padding: 13px;
+      border-radius: 12px; border: none;
+      background: #ff4444; color: #fff;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+
+    .install-banner {
+      margin: 0 16px 14px;
+      background: rgba(56,239,125,0.12);
+      border: 1px solid rgba(56,239,125,0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #b8f0d8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .install-banner .close-btn {
+      margin-left: auto; background: none; border: none;
+      color: #94b8c8; font-size: 18px; cursor: pointer; padding: 0 4px;
+    }
+
+    .tooth-input-wrap { display: flex; gap: 10px; align-items: center; }
+    .tooth-input-wrap .form-input { margin-bottom: 0; }
+    .tooth-count-label { font-size: 13px; color: #94b8c8; white-space: nowrap; }
+
+    #toothCountWrap { display: none; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏥 Ward Round P4P</h1>
+  <p>ระบบบันทึกคะแนนผู้ป่วย</p>
+</div>
+
+<div class="banner">
+  <div>
+    <div class="banner-label">คะแนน P4P รวม</div>
+    <div class="banner-score" id="totalScore">0</div>
+    <div class="banner-unit">คะแนน</div>
+  </div>
+  <div class="banner-right">
+    <div class="banner-label">สรุปภาพรวม</div>
+    <div class="stat" id="totalPatients">👥 0 คน (รวม)</div>
+    <div class="stat" id="workDays">📅 0 วันทำงาน</div>
+    <div class="stat" id="totalOps">🔪 0 operations</div>
+  </div>
+</div>
+
+<div class="install-banner" id="installBanner">
+  <span>📲</span>
+  <span>กด <b>Share → Add to Home Screen</b> เพื่อติดตั้งบนมือถือ</span>
+  <button class="close-btn" onclick="document.getElementById('installBanner').style.display='none'">×</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab-today" onclick="switchTab('today')">📋 ราวน์</button>
+  <button class="tab" id="tab-op" onclick="switchTab('op')">🔪 Operation</button>
+  <button class="tab" id="tab-summary" onclick="switchTab('summary')">📊 สรุป</button>
+</div>
+
+<!-- Today Tab -->
+<div class="content" id="view-today">
+  <div class="card">
+    <div class="card-label">เลือกวันที่</div>
+    <input type="date" class="form-input" id="selectedDate" style="margin-bottom:0" />
+  </div>
+  <div class="mini-stats">
+    <div class="mini-stat">
+      <div class="mini-stat-num" id="todayCount">0</div>
+      <div class="mini-stat-label">คนไข้วันนี้</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-num" id="todayScore">0</div>
+      <div class="mini-stat-label">คะแนนวันนี้</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">➕ เพิ่มคนไข้</div>
+    <input type="text" class="form-input" id="patientName" placeholder="ชื่อ-นามสกุล" />
+    <input type="text" class="form-input" id="patientHN" placeholder="HN (Hospital Number)" style="margin-bottom:12px" />
+    <button class="btn-add" onclick="addPatient()">บันทึกคนไข้</button>
+  </div>
+  <div id="patientList"></div>
+</div>
+
+<!-- Operation Tab -->
+<div class="content" id="view-op" style="display:none">
+  <div class="card">
+    <div class="card-label">เลือกวันที่ผ่าตัด</div>
+    <input type="date" class="form-input" id="opDate" style="margin-bottom:0" />
+  </div>
+  <div class="mini-stats">
+    <div class="mini-stat">
+      <div class="mini-stat-num" id="opTodayCount">0</div>
+      <div class="mini-stat-label">Op วันนี้</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-num" id="opTodayScore">0</div>
+      <div class="mini-stat-label">คะแนนวันนี้</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-label">➕ บันทึก Operation</div>
+    <input type="text" class="form-input" id="opPatientName" placeholder="ชื่อ-นามสกุล" />
+    <input type="text" class="form-input" id="opHN" placeholder="HN (Hospital Number)" />
+    <input type="text" class="form-input" id="opDx" placeholder="Diagnosis (Dx)" />
+    <select class="form-input" id="opType" onchange="onOpTypeChange()">
+      <option value="">-- เลือกประเภท Operation --</option>
+      <option value="conservative">Conservative (0 คะแนน)</option>
+      <option value="orif_zygoma">ORIF Zygoma / Reconstruction floor orbit (122 คะแนน)</option>
+      <option value="orif_mandible">ORIF Mandible (110 คะแนน)</option>
+      <option value="cr_maxilla">CR Maxilla / Mandible / Nasal bone (50 คะแนน)</option>
+      <option value="ds">Debridement and Suture - D&S (64 คะแนน)</option>
+      <option value="tooth_extraction">Tooth Extraction (10 คะแนน/ซี่)</option>
+      <option value="sr">Surgical Removal of Tooth - SR (30 คะแนน/ซี่)</option>
+      <option value="excision_biopsy">Excision Biopsy (64 คะแนน)</option>
+      <option value="torectomy">Torectomy (60 คะแนน)</option>
+      <option value="enucleation">Enucleation Cyst (60 คะแนน)</option>
+      <option value="mandibulectomy">Mandibulectomy (140 คะแนน)</option>
+      <option value="alveoloplasty">Alveoloplasty (30 คะแนน)</option>
+      <option value="iad">Incision and Drain - I&D (45 คะแนน)</option>
+      <option value="rfb">Remove Foreign Body (20 คะแนน)</option>
+      <option value="bssro">BSSRO (140 คะแนน)</option>
+      <option value="subapical">Subapical Osteotomy / Hofer (120 คะแนน)</option>
+      <option value="lfio">LFIO (170 คะแนน)</option>
+      <option value="cheiloplasty">Cheiloplasty / Palatoplasty (84 คะแนน)</option>
+      <option value="submental">Submental Intubation (54 คะแนน)</option>
+      <option value="genioplasty">Genioplasty (80 คะแนน)</option>
+      <option value="frenectomy">Frenectomy (20 คะแนน)</option>
+      <option value="tmj">Reduction TMJ Dislocation (30 คะแนน)</option>
+      <option value="abg">ABG / Alveolar Bone Graft ICBG (144 คะแนน)</option>
+      <option value="marsupialization">Marsupialization (30 คะแนน)</option>
+      <option value="onf">ONF / Oronasal Fistula Closure (30 คะแนน)</option>
+    </select>
+
+    <div id="toothCountWrap">
+      <div class="tooth-input-wrap">
+        <input type="number" class="form-input" id="toothCount" placeholder="จำนวนซี่" min="1" />
+        <span class="tooth-count-label">ซี่</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div style="flex:1">
+        <div class="card-label">Admit Date</div>
+        <input type="date" class="form-input" id="opAdmitDate" style="margin-bottom:0" />
+      </div>
+      <div style="flex:1">
+        <div class="card-label">D/C Date</div>
+        <input type="date" class="form-input" id="opDCDate" style="margin-bottom:0" />
+      </div>
+    </div>
+    <div style="height:10px"></div>
+    <button class="btn-add" onclick="addOperation()">บันทึก Operation</button>
+  </div>
+  <div id="opList"></div>
+</div>
+
+<!-- Summary Tab -->
+<div class="content" id="view-summary" style="display:none">
+  <div class="month-selector">
+    <select class="form-input" id="summaryMonth" onchange="renderSummary()"></select>
+  </div>
+  <div id="summaryContent"></div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal" style="display:none">
+  <div class="modal">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">ลบรายชื่อนี้?</div>
+    <div class="modal-desc">ข้อมูลจะถูกลบและไม่สามารถกู้คืนได้</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()">ลบ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────
+const OP_SCORES = {
+  conservative: 0,
+  orif_zygoma: 122,
+  orif_mandible: 110,
+  cr_maxilla: 50,
+  ds: 64,
+  tooth_extraction: 10,
+  sr: 30,
+  excision_biopsy: 64,
+  torectomy: 60,
+  enucleation: 60,
+  mandibulectomy: 140,
+  alveoloplasty: 30,
+  iad: 45,
+  rfb: 20,
+  bssro: 140,
+  subapical: 120,
+  lfio: 170,
+  cheiloplasty: 84,
+  submental: 54,
+  genioplasty: 80,
+  frenectomy: 20,
+  tmj: 30,
+  abg: 144,
+  marsupialization: 30,
+  onf: 30
+};
+
+const OP_NAMES = {
+  conservative: 'Conservative',
+  orif_zygoma: 'ORIF Zygoma / Reconstruction floor orbit',
+  orif_mandible: 'ORIF Mandible',
+  cr_maxilla: 'CR Maxilla / Mandible / Nasal bone',
+  ds: 'Debridement and Suture (D&S)',
+  tooth_extraction: 'Tooth Extraction',
+  sr: 'Surgical Removal of Tooth (SR)',
+  excision_biopsy: 'Excision Biopsy',
+  torectomy: 'Torectomy',
+  enucleation: 'Enucleation Cyst',
+  mandibulectomy: 'Mandibulectomy',
+  alveoloplasty: 'Alveoloplasty',
+  iad: 'Incision and Drain (I&D)',
+  rfb: 'Remove Foreign Body',
+  bssro: 'BSSRO',
+  subapical: 'Subapical Osteotomy / Hofer',
+  lfio: 'LFIO',
+  cheiloplasty: 'Cheiloplasty / Palatoplasty',
+  submental: 'Submental Intubation',
+  genioplasty: 'Genioplasty',
+  frenectomy: 'Frenectomy',
+  tmj: 'Reduction TMJ Dislocation',
+  abg: 'ABG / Alveolar Bone Graft ICBG',
+  marsupialization: 'Marsupialization',
+  onf: 'ONF / Oronasal Fistula Closure'
+};
+
+const TOOTH_OPS = ['tooth_extraction', 'sr'];
+const PREP_SCORE = 30;
+
+// ── State ──────────────────────────────────────────────
+let records = JSON.parse(localStorage.getItem('p4p_records') || '{}');
+let opRecords = JSON.parse(localStorage.getItem('p4p_ops') || '{}');
+let deleteTarget = null;
+
+// ── Init ───────────────────────────────────────────────
+const todayKey = () => new Date().toISOString().split('T')[0];
+
+document.getElementById('selectedDate').value = todayKey();
+document.getElementById('opDate').value = todayKey();
+document.getElementById('selectedDate').addEventListener('change', renderToday);
+document.getElementById('opDate').addEventListener('change', renderOpList);
+
+document.getElementById('patientName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('patientHN').focus();
+});
+document.getElementById('patientHN').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addPatient();
+});
+
+populateMonthSelector();
+render();
+
+// ── Save ───────────────────────────────────────────────
+function save() {
+  localStorage.setItem('p4p_records', JSON.stringify(records));
+  localStorage.setItem('p4p_ops', JSON.stringify(opRecords));
+}
+
+// ── Op Type Change ─────────────────────────────────────
+function onOpTypeChange() {
+  const val = document.getElementById('opType').value;
+  const wrap = document.getElementById('toothCountWrap');
+  wrap.style.display = TOOTH_OPS.includes(val) ? 'block' : 'none';
+  if (!TOOTH_OPS.includes(val)) document.getElementById('toothCount').value = '';
+}
+
+function calcOpScore(type, toothCount) {
+  if (!type) return 0;
+  const base = OP_SCORES[type] || 0;
+  if (TOOTH_OPS.includes(type)) return base * (parseInt(toothCount) || 0);
+  return base;
+}
+
+function isRealOp(type) {
+  return type && type !== 'conservative';
+}
+
+// ── Add Patient ────────────────────────────────────────
+function addPatient() {
+  const name = document.getElementById('patientName').value.trim();
+  const hn = document.getElementById('patientHN').value.trim();
+  const date = document.getElementById('selectedDate').value;
+  if (!name || !hn) { alert('กรุณากรอกชื่อและ HN ให้ครบ'); return; }
+  if (!records[date]) records[date] = [];
+  records[date].push({ id: Date.now(), name, hn });
+  save();
+  document.getElementById('patientName').value = '';
+  document.getElementById('patientHN').value = '';
+  document.getElementById('patientName').focus();
+  render();
+}
+
+// ── Add Operation ──────────────────────────────────────
+function addOperation() {
+  const name = document.getElementById('opPatientName').value.trim();
+  const hn = document.getElementById('opHN').value.trim();
+  const dx = document.getElementById('opDx').value.trim();
+  const type = document.getElementById('opType').value;
+  const toothCount = document.getElementById('toothCount').value;
+  const admitDate = document.getElementById('opAdmitDate').value;
+  const dcDate = document.getElementById('opDCDate').value;
+  const date = document.getElementById('opDate').value;
+
+  if (!name || !hn || !type) { alert('กรุณากรอกชื่อ, HN และเลือกประเภท Operation'); return; }
+  if (TOOTH_OPS.includes(type) && (!toothCount || parseInt(toothCount) < 1)) {
+    alert('กรุณากรอกจำนวนซี่'); return;
+  }
+
+  const opScore = calcOpScore(type, toothCount);
+  const prepScore = isRealOp(type) ? PREP_SCORE : 0;
+  const totalPts = opScore + prepScore;
+
+  if (!opRecords[date]) opRecords[date] = [];
+  opRecords[date].push({
+    id: Date.now(), name, hn, dx, type,
+    toothCount: TOOTH_OPS.includes(type) ? parseInt(toothCount) : null,
+    admitDate, dcDate, opScore, prepScore, totalPts
+  });
+  save();
+
+  document.getElementById('opPatientName').value = '';
+  document.getElementById('opHN').value = '';
+  document.getElementById('opDx').value = '';
+  document.getElementById('opType').value = '';
+  document.getElementById('toothCount').value = '';
+  document.getElementById('opAdmitDate').value = '';
+  document.getElementById('opDCDate').value = '';
+  document.getElementById('toothCountWrap').style.display = 'none';
+  document.getElementById('opPatientName').focus();
+  render();
+}
+
+// ── Delete ─────────────────────────────────────────────
+function askDelete(type, date, id) {
+  deleteTarget = { type, date, id };
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeModal() {
+  deleteTarget = null;
+  document.getElementById('deleteModal').style.display = 'none';
+}
+function confirmDelete() {
+  if (!deleteTarget) return;
+  const { type, date, id } = deleteTarget;
+  if (type === 'ward') {
+    records[date] = (records[date] || []).filter(p => p.id !== id);
+    if (records[date].length === 0) delete records[date];
+  } else {
+    opRecords[date] = (opRecords[date] || []).filter(p => p.id !== id);
+    if (opRecords[date].length === 0) delete opRecords[date];
+  }
+  save();
+  closeModal();
+  render();
+}
+
+// ── Tab ────────────────────────────────────────────────
+function switchTab(tab) {
+  ['today','op','summary'].forEach(t => {
+    document.getElementById(`view-${t}`).style.display = t === tab ? 'block' : 'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'summary') { populateMonthSelector(); renderSummary(); }
+}
+
+// ── Render ─────────────────────────────────────────────
+function render() {
+  renderBanner();
+  renderToday();
+  renderOpList();
+}
+
+function getAllWardScore() {
+  return Object.values(records).reduce((s, a) => s + a.length * 4, 0);
+}
+function getAllOpScore() {
+  return Object.values(opRecords).reduce((s, a) => s + a.reduce((ss, o) => ss + o.totalPts, 0), 0);
+}
+function getAllPatients() {
+  return Object.values(records).reduce((s, a) => s + a.length, 0);
+}
+function getAllOps() {
+  return Object.values(opRecords).reduce((s, a) => s + a.length, 0);
+}
+
+function renderBanner() {
+  const total = getAllWardScore() + getAllOpScore();
+  const days = Object.keys(records).length;
+  document.getElementById('totalScore').textContent = total;
+  document.getElementById('totalPatients').textContent = `👥 ${getAllPatients()} คน (รวม)`;
+  document.getElementById('workDays').textContent = `📅 ${days} วันทำงาน`;
+  document.getElementById('totalOps').textContent = `🔪 ${getAllOps()} operations`;
+}
+
+function renderToday() {
+  const date = document.getElementById('selectedDate').value;
+  const pts = records[date] || [];
+  document.getElementById('todayCount').textContent = pts.length;
+  document.getElementById('todayScore').textContent = pts.length * 4;
+
+  const list = document.getElementById('patientList');
+  if (pts.length === 0) {
+    list.innerHTML = '<div class="empty">ยังไม่มีคนไข้ในวันนี้<br>เพิ่มคนไข้เพื่อเริ่มบันทึก</div>';
+    return;
+  }
+  list.innerHTML = `
+    <div style="font-size:13px;color:#94b8c8;margin-bottom:10px">รายชื่อคนไข้</div>
+    ${pts.map(p => `
+      <div class="patient-item">
+        <div>
+          <div class="patient-name">${esc(p.name)}</div>
+          <div class="patient-hn">HN: ${esc(p.hn)}</div>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="badge">+4</span>
+          <button class="btn-delete" onclick="askDelete('ward','${date}',${p.id})">🗑️</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderOpList() {
+  const date = document.getElementById('opDate').value;
+  const ops = opRecords[date] || [];
+  const dayScore = ops.reduce((s, o) => s + o.totalPts, 0);
+  document.getElementById('opTodayCount').textContent = ops.length;
+  document.getElementById('opTodayScore').textContent = dayScore;
+
+  const list = document.getElementById('opList');
+  if (ops.length === 0) {
+    list.innerHTML = '<div class="empty">ยังไม่มี Operation ในวันนี้</div>';
+    return;
+  }
+  list.innerHTML = `
+    <div style="font-size:13px;color:#94b8c8;margin-bottom:10px">รายการ Operation</div>
+    ${ops.map(o => `
+      <div class="patient-item" style="align-items:flex-start">
+        <div style="flex:1">
+          <div class="patient-name">${esc(o.name)}</div>
+          <div class="patient-hn">HN: ${esc(o.hn)}</div>
+          ${o.dx ? `<div class="patient-sub">Dx: ${esc(o.dx)}</div>` : ''}
+          <div class="patient-sub">${esc(OP_NAMES[o.type] || o.type)}${o.toothCount ? ` (${o.toothCount} ซี่)` : ''}</div>
+          ${o.admitDate ? `<div class="patient-sub">Admit: ${formatDate(o.admitDate)} ${o.dcDate ? '→ D/C: ' + formatDate(o.dcDate) : ''}</div>` : ''}
+          ${o.prepScore > 0 ? `<span class="badge-prep">+${o.prepScore} เตรียมผ่าตัด</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;flex-shrink:0;margin-left:8px">
+          <span class="badge">+${o.totalPts}</span>
+          <button class="btn-delete" onclick="askDelete('op','${date}',${o.id})">🗑️</button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+// ── Summary ────────────────────────────────────────────
+function populateMonthSelector() {
+  const allDates = [...Object.keys(records), ...Object.keys(opRecords)];
+  const months = [...new Set(allDates.map(d => d.substring(0, 7)))].sort((a, b) => b.localeCompare(a));
+  const sel = document.getElementById('summaryMonth');
+  const cur = sel.value;
+  if (months.length === 0) {
+    const now = new Date();
+    months.push(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`);
+  }
+  sel.innerHTML = months.map(m => {
+    const [y, mo] = m.split('-');
+    const label = new Date(parseInt(y), parseInt(mo)-1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+    return `<option value="${m}" ${m === cur ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+}
+
+function getMonthData(ym) {
+  const wardDates = Object.keys(records).filter(d => d.startsWith(ym)).sort((a,b) => b.localeCompare(a));
+  const opDates = Object.keys(opRecords).filter(d => d.startsWith(ym)).sort((a,b) => b.localeCompare(a));
+
+  let wardScore = 0, wardCount = 0;
+  wardDates.forEach(d => { wardScore += records[d].length * 4; wardCount += records[d].length; });
+
+  let opScore = 0, opCount = 0;
+  opDates.forEach(d => { opRecords[d].forEach(o => { opScore += o.totalPts; opCount++; }); });
+
+  return { wardDates, opDates, wardScore, wardCount, opScore, opCount, total: wardScore + opScore };
+}
+
+function renderSummary() {
+  const ym = document.getElementById('summaryMonth').value;
+  if (!ym) return;
+  const { wardDates, opDates, wardScore, wardCount, opScore, opCount, total } = getMonthData(ym);
+  const [y, mo] = ym.split('-');
+  const monthLabel = new Date(parseInt(y), parseInt(mo)-1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+
+  const el = document.getElementById('summaryContent');
+  el.innerHTML = `
+    <div class="summary-total">
+      <div style="font-size:13px;color:#94b8c8;margin-bottom:4px">${monthLabel}</div>
+      <div class="summary-total-num">${total}</div>
+      <div class="summary-total-label">คะแนนรวมทั้งเดือน</div>
+      <div class="summary-breakdown">
+        <div class="summary-breakdown-item">
+          <div class="summary-breakdown-num">${wardScore}</div>
+          <div class="summary-breakdown-label">Ward Round</div>
+        </div>
+        <div class="summary-breakdown-item">
+          <div class="summary-breakdown-num">${opScore}</div>
+          <div class="summary-breakdown-label">Operation</div>
+        </div>
+        <div class="summary-breakdown-item">
+          <div class="summary-breakdown-num">${wardCount + opCount}</div>
+          <div class="summary-breakdown-label">คนไข้ทั้งหมด</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-export" onclick="exportPDF('${ym}')">📄 Export PDF เดือนนี้</button>
+
+    ${wardDates.length > 0 ? `
+      <div class="section-title">📋 Ward Round</div>
+      ${wardDates.map(date => {
+        const pts = records[date];
+        return `
+          <div class="day-card">
+            <div class="day-header">
+              <div>
+                <div class="day-date">${formatDateTH(date)}</div>
+                <div class="day-count">${pts.length} คน</div>
+              </div>
+              <div class="day-score">${pts.length * 4} คะแนน</div>
+            </div>
+            ${pts.map(p => `<div class="day-patient">${esc(p.name)} <span>· HN: ${esc(p.hn)}</span></div>`).join('')}
+          </div>
+        `;
+      }).join('')}
+    ` : ''}
+
+    ${opDates.length > 0 ? `
+      <div class="section-title">🔪 Operation</div>
+      ${opDates.map(date => {
+        const ops = opRecords[date];
+        const dayTotal = ops.reduce((s, o) => s + o.totalPts, 0);
+        return `
+          <div class="day-card">
+            <div class="day-header">
+              <div>
+                <div class="day-date">${formatDateTH(date)}</div>
+                <div class="day-count">${ops.length} operations</div>
+              </div>
+              <div class="day-score">${dayTotal} คะแนน</div>
+            </div>
+            ${ops.map(o => `
+              <div class="day-patient">
+                ${esc(o.name)} <span>· HN: ${esc(o.hn)}</span><br>
+                <span>${esc(OP_NAMES[o.type] || o.type)}${o.toothCount ? ` (${o.toothCount} ซี่)` : ''} · ${o.opScore} pt${o.prepScore > 0 ? ` + ${o.prepScore} เตรียมผ่าตัด` : ''} = ${o.totalPts} pt</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('')}
+    ` : ''}
+
+    ${wardDates.length === 0 && opDates.length === 0 ? '<div class="empty">ไม่มีข้อมูลในเดือนนี้</div>' : ''}
+  `;
+}
+
+// ── Export PDF ─────────────────────────────────────────
+function exportPDF(ym) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const { wardDates, opDates, wardScore, wardCount, opScore, opCount, total } = getMonthData(ym);
+  const [y, mo] = ym.split('-');
+  const monthLabel = new Date(parseInt(y), parseInt(mo)-1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+
+  const pageW = 210, margin = 15;
+  let yPos = 20;
+
+  // Use built-in font (no Thai support in jsPDF without custom font, so use English for PDF)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(17, 153, 142);
+  doc.text('Ward Round P4P - Monthly Report', margin, yPos);
+  yPos += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(80, 80, 80);
+  doc.text(`Month: ${new Date(parseInt(y), parseInt(mo)-1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`, margin, yPos);
+  yPos += 6;
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, yPos);
+  yPos += 10;
+
+  // Summary box
+  doc.setFillColor(17, 153, 142);
+  doc.roundedRect(margin, yPos, pageW - margin*2, 28, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text(`Total: ${total} pts`, margin + 6, yPos + 13);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Ward Round: ${wardScore} pts (${wardCount} patients)`, margin + 6, yPos + 22);
+  doc.text(`Operation: ${opScore} pts (${opCount} operations)`, margin + 80, yPos + 22);
+  yPos += 36;
+
+  // Ward Round Section
+  if (wardDates.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(17, 153, 142);
+    doc.text('Ward Round', margin, yPos);
+    yPos += 6;
+
+    wardDates.forEach(date => {
+      const pts = records[date];
+      if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+      doc.setFillColor(240, 248, 250);
+      doc.roundedRect(margin, yPos, pageW - margin*2, 7, 1, 1, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(30, 80, 100);
+      doc.text(formatDateEN(date), margin + 3, yPos + 5);
+      doc.text(`${pts.length * 4} pts (${pts.length} patients)`, pageW - margin - 3, yPos + 5, { align: 'right' });
+      yPos += 9;
+
+      pts.forEach(p => {
+        if (yPos > 270) { doc.addPage(); yPos = 20; }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+        doc.text(`  ${p.name}  |  HN: ${p.hn}`, margin + 3, yPos);
+        doc.setTextColor(17, 153, 142);
+        doc.text('+4 pts', pageW - margin - 3, yPos, { align: 'right' });
+        yPos += 5.5;
+      });
+      yPos += 3;
+    });
+    yPos += 4;
+  }
+
+  // Operation Section
+  if (opDates.length > 0) {
+    if (yPos > 250) { doc.addPage(); yPos = 20; }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(17, 153, 142);
+    doc.text('Operations', margin, yPos);
+    yPos += 6;
+
+    opDates.forEach(date => {
+      const ops = opRecords[date];
+      const dayTotal = ops.reduce((s, o) => s + o.totalPts, 0);
+      if (yPos > 255) { doc.addPage(); yPos = 20; }
+
+      doc.setFillColor(240, 248, 250);
+      doc.roundedRect(margin, yPos, pageW - margin*2, 7, 1, 1, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(30, 80, 100);
+      doc.text(formatDateEN(date), margin + 3, yPos + 5);
+      doc.text(`${dayTotal} pts (${ops.length} ops)`, pageW - margin - 3, yPos + 5, { align: 'right' });
+      yPos += 9;
+
+      ops.forEach(o => {
+        if (yPos > 262) { doc.addPage(); yPos = 20; }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+        const opNameShort = (OP_NAMES[o.type] || o.type).substring(0, 35);
+        doc.text(`  ${o.name}  |  HN: ${o.hn}`, margin + 3, yPos);
+        doc.setTextColor(17, 153, 142);
+        doc.text(`+${o.totalPts} pts`, pageW - margin - 3, yPos, { align: 'right' });
+        yPos += 5;
+        doc.setTextColor(100, 130, 150);
+        doc.text(`  ${opNameShort}${o.toothCount ? ` (${o.toothCount} teeth)` : ''}${o.dx ? '  |  Dx: ' + o.dx.substring(0,30) : ''}`, margin + 3, yPos);
+        if (o.admitDate) {
+          doc.text(`Admit: ${formatDateEN(o.admitDate)}${o.dcDate ? ' -> D/C: ' + formatDateEN(o.dcDate) : ''}`, pageW - margin - 3, yPos, { align: 'right' });
+        }
+        yPos += 5;
+        if (o.prepScore > 0) {
+          doc.setTextColor(150, 100, 20);
+          doc.text(`  Op: ${o.opScore} pts + Prep: ${o.prepScore} pts`, margin + 3, yPos);
+          yPos += 5;
+        }
+        yPos += 1;
+      });
+      yPos += 3;
+    });
+  }
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`P4P Ward Round System  |  Page ${i}/${pageCount}`, pageW / 2, 290, { align: 'center' });
+  }
+
+  doc.save(`P4P_Report_${ym}.pdf`);
+}
+
+// ── Helpers ────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatDateTH(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatDateEN(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+</script>
+</body>
+</html>
